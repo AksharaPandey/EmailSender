@@ -1,21 +1,33 @@
 import streamlit as st
-import openai
+import google.generativeai as genai
 
-client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Configure the GenAI with the API key from Streamlit secrets
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
 def generate_email_response(email_content, subject, tone):
-  prompt=f"""
-  You are an expert email writer. Craft a {tone} response to the following email:
-  Subject: {subject}
-  Email Content: {email_content}
-  Response:
+    # 'gemini-2.5-flash-lite' has the most reliable free-tier quota right now (up to 1,000 per day)
+    model = genai.GenerativeModel('gemini-2.5-flash-lite') 
+    
+    prompt = f"""
+You are an expert email writer. Draft a {tone} response to the following email:
+
+Original Email Content: {email_content}
+Original Subject: {subject}
+
+Instructions:
+1. Write a {tone} response.
+2. Be concise.
+3. You MUST end the email with this specific signature format:
+
+Sincerely,
+
+Akshara Pandey \n
+CSE Grad
 """
-  response=client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-      {"role": "system", "content": "You are a helpful assistant that writes email responses."},
-      {"role": "user", "content": prompt}
-    ],
-    max_tokens=500,
-    temperature=0.7,
-  )
-  return response.choices[0].message.content.strip()
+    
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        # If 2.5-lite still fails, the last resort for free is 1.5-flash
+        return f"Error: {str(e)}. Try switching to gemini-1.5-flash."
