@@ -1,0 +1,15 @@
+# Environments
+.venv/
+env/
+venv/
+
+# Streamlit - Ignore the secrets but keep the folder config if needed
+.streamlit/secrets.toml
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+# System files
+.DS_Store
+
